@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @db.VarChar(60)
+  username  String?  @db.VarChar(60)
+  password  String   @db.VarChar(120)
+  role      Role     @default(user)   
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) 
+}
+
+model Kategori {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(80)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Item {
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(80)
+  description
+  stock
+  image_url 
+  categoryId //kalo mau 1 barang cuma boleh 1 kategori
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+//ini kalo mau lebih dari 1
+model ItemCategory {
+  id
+  itemId
+  categoryId
+}
+
+model Borrowing {
+  id        Int      @id @default(autoincrement())
+  borrowingUserId
+  approvedBy
+  status
+  qty
+  itemId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
+
+model Returning {
+  id        Int      @id @default(autoincrement())
+  borrowingId
+  status
+  qty
+  approvedBy
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+}
