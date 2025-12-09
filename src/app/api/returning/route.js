@@ -53,3 +53,60 @@ export async function POST(req) {
     return Response.json({ message: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
+
+
+export async function PUT(req, { params }) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user.role !== "admin") {
+    return Response.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const returningId = Number(params.id);
+    const { status } = await req.json();
+
+    if (!["approved", "rejected"].includes(status)) {
+      return Response.json(
+        { message: "Status harus 'approved' atau 'rejected'" },
+        { status: 400 }
+      );
+    }
+    
+    const returning = await prisma.returning.findUnique({
+      where: { id: returningId },
+      include: {
+        borrowing: {
+          include: { item: true }
+        }
+      }
+    });
+
+    if (!returning) {
+      return Response.json({ message: "Returning tidak ditemukan" }, { status: 404 });
+    }
+
+    if (status === "approved") {
+      await prisma.item.update({
+        where: { id: returning.borrowing.itemId },
+        data: {
+          stock: returning.borrowing.item.stock + returning.qty
+        }
+      });
+    }
+
+    const updated = await prisma.returning.update({
+      where: { id: returningId },
+      data: {
+        status,
+        approvedBy: session.user.id
+      }
+    });
+
+    return Response.json(updated);
+
+  } catch (error) {
+    console.error(error);
+    return Response.json({ message: "Terjadi kesalahan server" }, { status: 500 });
+  }
+}
