@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,57 +13,84 @@ enum Role {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @db.VarChar(60)
-  username  String?  @db.VarChar(60)
-  password  String   @db.VarChar(120)
-  role      Role     @default(user)   
+  id       Int     @id @default(autoincrement())
+  email    String  @db.VarChar(60)
+  username String? @db.VarChar(60)
+  password String  @db.VarChar(120)
+  role     Role    @default(user)
+
+  borrowingsBorrower Borrowing[] @relation("Borrower")
+  borrowingsApprover Borrowing[] @relation("Approver")
+  returnsApprover    Returning[] @relation("ReturnApprover")
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt
 }
 
 model Kategori {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(80)
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(80)
+
+  items Item[]
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Item {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(80)
-  description
-  stock
-  image_url 
-  categoryId //kalo mau 1 barang cuma boleh 1 kategori
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(80)
+  description String?
+  stock       Int
+  image_url   String?
+
+  categoryId Int
+  category   Kategori @relation(fields: [categoryId], references: [id])
+
+  borrowings Borrowing[]
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-//ini kalo mau lebih dari 1
-model ItemCategory {
-  id
-  itemId
-  categoryId
+enum BorrowStatus {
+  pending
+  approved
+  rejected
+  returned
 }
 
 model Borrowing {
-  id        Int      @id @default(autoincrement())
-  borrowingUserId
-  approvedBy
-  status
-  qty
-  itemId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  id              Int          @id @default(autoincrement())
+  qty             Int
+  status          BorrowStatus @default(pending)
+  itemId          Int
+  item            Item         @relation(fields: [itemId], references: [id])
+  borrowingUserId Int
+  borrower        User         @relation("Borrower", fields: [borrowingUserId], references: [id])
+  approvedBy      Int?
+  approver        User?        @relation("Approver", fields: [approvedBy], references: [id])
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Returning Returning[]
+}
+
+enum ReturnStatus {
+  pending
+  approved
+  rejected
 }
 
 model Returning {
-  id        Int      @id @default(autoincrement())
-  borrowingId
-  status
-  qty
-  approvedBy
+  id          Int          @id @default(autoincrement())
+  qty         Int
+  status      ReturnStatus @default(pending)
+  borrowingId Int
+  borrowing   Borrowing    @relation(fields: [borrowingId], references: [id])
+  approvedBy  Int?
+  approver    User?        @relation("ReturnApprover", fields: [approvedBy], references: [id])
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
