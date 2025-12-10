@@ -3,23 +3,27 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../layout/page";
 
-export default function CategoryList() {
-  const [categories, setCategories] = useState([]);
+export default function Item() {
+  const [borrow, setBorrows] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
-      const res = await fetch("/api/category");
+      const res = await fetch("/api/borrow");
       const data = await res.json();
-      setCategories(data);
+      setBorrows(data);
     }
     fetchData();
   }, []);
+
+
+  console.log(borrow)
+
 
   return (
     <div className="bg-[#F2F2F2]">
             <AdminLayout>
               <div>
-                <h1 className="text-3xl font-bold mb-8 text-black">Kelola Kategori</h1>
+                <h1 className="text-3xl font-bold mb-8 text-black">Kelola Peminjaman</h1>
               </div>
     
               <div className="bg-white p-6 rounded-xl shadow mb-10 text-gray-600">
@@ -29,18 +33,22 @@ export default function CategoryList() {
                   <thead>
                     <tr className="text-gray-600">
                       <th className="py-2">No</th>
-                      <th className="py-2">Nama Barang</th>
-                      <th className="py-2"></th>
-                      <th className="py-2">Aksi</th>
+                      <th className="py-2">Approve oleh</th>
+                      <th className="py-2">Peminjam</th>
+                      <th className="py-2">Barang</th>
+                      <th className="py-2">Status</th>
+                      <th className="py-2">Qty</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {categories.map((c) => (
-                      <tr className="border-t text-gray-700" key={c.id}>
-                        <td className="py-2">{c.id}</td>
-                        <td className="py-2">{c.name}</td>
-                        <td className="py-2">{c.description}</td>
-                        <td className="py-2">Edit</td>
+                    {borrow.map((b) => (
+                      <tr key={b.id} className="border-t text-gray-700">
+                        <td className="py-2">{b.id}</td>
+                        <td className="py-2">{b.approver?.username}</td>
+                        <td className="py-2">{b.borrower?.username}</td>
+                        <td className="py-2">{b.item?.name}</td>
+                        <td className="py-2">{b.status}</td>
+                        <td className="py-2">{b.qty}</td>
                       </tr>
                     ))}
                   </tbody>
