@@ -15,7 +15,7 @@ export async function GET() {
   return Response.json(borrows);
 }
 
-export async function POST(req) {
+eexport async function POST(req) {
   const session = await getServerSession(authOptions);
 
   if (!session) {
@@ -25,10 +25,12 @@ export async function POST(req) {
   try {
     const data = await req.json();
 
+    // Validasi itemId
     if (!data.itemId || isNaN(Number(data.itemId))) {
       return Response.json({ message: "itemId tidak valid" }, { status: 400 });
     }
 
+    // Validasi qty
     if (!data.qty || isNaN(Number(data.qty)) || Number(data.qty) <= 0) {
       return Response.json({ message: "qty harus lebih dari 0" }, { status: 400 });
     }
@@ -37,6 +39,7 @@ export async function POST(req) {
     const qty = Number(data.qty);
     const userId = Number(session.user.id);
 
+    // Cek apakah item tersedia
     const item = await prisma.item.findUnique({
       where: { id: itemId }
     });
@@ -45,6 +48,7 @@ export async function POST(req) {
       return Response.json({ message: "Item tidak ditemukan" }, { status: 404 });
     }
 
+    // Cek stok item
     if (item.stock < qty) {
       return Response.json(
         { message: `Stok tidak cukup. Stok tersedia: ${item.stock}` },
@@ -52,12 +56,14 @@ export async function POST(req) {
       );
     }
 
+    // Membuat transaksi peminjaman
     const borrowing = await prisma.borrowing.create({
       data: {
         qty,
         itemId,
         borrowingUserId: userId,
-        status: "pending"
+        status: "pending",
+        borrowedAt: new Date() // Tanggal peminjaman, diset secara eksplisit
       }
     });
 
@@ -71,6 +77,7 @@ export async function POST(req) {
     );
   }
 }
+
 
 
 export async function PUT(req, { params }) {

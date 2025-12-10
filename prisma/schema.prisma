@@ -71,6 +71,9 @@ model Borrowing {
   approvedBy      Int?
   approver        User?        @relation("Approver", fields: [approvedBy], references: [id])
 
+  borrowedAt DateTime  @default(now())  // Tanggal peminjaman
+  returnedAt DateTime? // Tanggal pengembalian (nullable)
+
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   Returning Returning[]
